@@ -11,6 +11,8 @@ if sys.version_info[0] < 3:
 
 from time import time, mktime, strptime
 from datetime import datetime
+# The current run time.
+ftime = time()
 
 outlines = opml.parse('subs.xml')
 
