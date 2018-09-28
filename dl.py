@@ -77,7 +77,7 @@ if __name__ == '__main__':
         else:
             print(f'{len(videos)} new videos found')
     
-        ydl_opts = {'ignoreerrors': True}
+        ydl_opts = {'ignoreerrors': True, 'quiet': True}
     
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download(videos)
