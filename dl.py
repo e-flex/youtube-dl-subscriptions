@@ -46,7 +46,6 @@ if __name__ == '__main__':
             content = f.read()
             # The last run time.
             ptime = datetime.utcfromtimestamp(float(content))
-    
 
         if args.retain is not None:
             # Find the videos in this directory which are older than the time
