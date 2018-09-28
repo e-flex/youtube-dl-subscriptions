@@ -12,6 +12,7 @@ if sys.version_info[0] < 3:
 from time import time, mktime, strptime
 from datetime import datetime
 
+outlines = opml.parse('subs.xml')
 
 if not Path('last.txt').exists():
     with open('last.txt', 'w') as f:
@@ -23,7 +24,6 @@ else:
         # The last run time.
         ptime = datetime.utcfromtimestamp(float(content))
 
-    outline = opml.parse('subs.xml')
 
 
     urls = []
