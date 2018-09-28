@@ -25,8 +25,6 @@ else:
 
     outline = opml.parse('subs.xml')
 
-    ptime = datetime.utcfromtimestamp(float(content))
-    ftime = time()
 
     urls = []
 
