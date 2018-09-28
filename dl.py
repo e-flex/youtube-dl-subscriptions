@@ -5,8 +5,6 @@ import feedparser
 import youtube_dl
 import sys
 from pathlib import Path
-from glob import glob
-from pprint import pprint
 
 if sys.version_info[0] < 3:
     raise Exception('Must be using Python 3')
