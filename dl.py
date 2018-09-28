@@ -30,23 +30,23 @@ else:
 
     urls = []
 
-    for i in range(0,len(outline[0])):
-        urls.append(outline[0][i].xmlUrl)
+    for outline in outlines[0]:
+        urls.append(outline.xmlUrl)
 
     videos = []
-    for i in range(0,len(urls)):
-        print('Parsing through channel '+str(i+1)+' out of '+str(len(urls)), end='\r')
-        feed = feedparser.parse(urls[i])
-        for j in range(0,len(feed['items'])):
-            timef = feed['items'][j]['published_parsed']
+    for i, url in enumerate(urls):
+        print(f'Parsing through channel {i + 1} of {len(urls)}', end='\r')
+        feed = feedparser.parse(url)
+        for item in feed['items']:
+            timef = item['published_parsed']
             dt = datetime.fromtimestamp(mktime(timef))
             if dt > ptime:
-                videos.append(feed['items'][j]['link'])
+                videos.append(item['link'])
 
     if len(videos) == 0:
         print('Sorry, no new video found')
     else:
-        print(str(len(videos))+' new videos found')
+        print(f'{len(videos)} new videos found')
 
     ydl_opts = {'ignoreerrors': True}
 
