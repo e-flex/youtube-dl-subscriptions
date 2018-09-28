@@ -55,7 +55,7 @@ if __name__ == '__main__':
                 mtime = datetime.utcfromtimestamp(os.path.getmtime(video))
                 if mtime < keeptime:
                     print(f'Removing {str(video)}.')
-                    # video.unlink()
+                    video.unlink()
     
         urls = []
     
