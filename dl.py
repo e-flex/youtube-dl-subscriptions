@@ -58,8 +58,10 @@ if __name__ == '__main__':
         if args.retain is not None:
             # Find the videos in this directory which are older than the time
             # stamp since the last run and remove them.
-            keeptime = datetime.fromtimestamp(ftime) - relativedelta(days=float(args.retain))
-            for video in Path('.').glob('*.mp4'):
+            keep_time = datetime.fromtimestamp(script_time) - relativedelta(days=float(args.retain))
+            for video in Path('.').glob('**/*.*'):
+                if 'last.txt' in str(video):
+                    continue
                 modified_time = datetime.utcfromtimestamp(os.path.getmtime(video))
                 if modified_time < keep_time:
                     print(f'Removing {str(video)}.')
