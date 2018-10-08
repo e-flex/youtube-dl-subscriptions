@@ -38,7 +38,8 @@ if __name__ == '__main__':
     outlines = opml.parse('subs.xml')
 
     if args.output is not None:
-        os.chdir(Path(args.output).absolute())
+        args.output = Path(args.output).absolute()
+        os.chdir(args.output)
 
     if not Path('last.txt').exists():
         with open('last.txt', 'w') as f:
@@ -81,7 +82,7 @@ if __name__ == '__main__':
         else:
             print(f'{len(videos)} new videos found')
     
-        ydl_opts = {'ignoreerrors': True, 'quiet': True}
+        ydl_opts = {'ignoreerrors': True, 'quiet': True, 'outtmpl': (args.output / Path('%(uploader)s', '%(title)s.%(ext)s')).as_posix()}
     
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download(videos)
