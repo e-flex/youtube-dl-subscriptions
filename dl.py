@@ -7,13 +7,12 @@ import youtube_dl
 import sys
 from pathlib import Path
 import argparse
-
-if sys.version_info[0] < 3:
-    raise Exception('Must be using Python 3')
-
 from time import time, mktime, strptime
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
+if sys.version_info.major < 3 and sys.version_info.minor < 6:
+    raise Exception('Must be using Python 3.6 or greater')
 
 if __name__ == '__main__':
 
