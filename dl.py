@@ -72,9 +72,8 @@ if __name__ == '__main__':
             print(f'Parsing through channel {i + 1} of {len(urls)}', end='\r')
             feed = feedparser.parse(url)
             for item in feed['items']:
-                timef = item['published_parsed']
-                dt = datetime.fromtimestamp(mktime(timef))
-                if dt > ptime:
+                video_time = datetime.fromtimestamp(mktime(item['published_parsed']))
+                if video_time > threshold_time:
                     videos.append(item['link'])
     
         if len(videos) == 0:
