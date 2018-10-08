@@ -33,10 +33,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # The current run time.
-    ftime = time()
+    script_time = time()
 
     outlines = opml.parse('subs.xml')
-    
+
     if args.output is not None:
         os.chdir(Path(args.output).absolute())
 
@@ -46,9 +46,9 @@ if __name__ == '__main__':
             print('Initialized a last.txt file with current timestamp.')
     else:
         with open('last.txt', 'r') as f:
-            content = f.read()
             # The last run time.
-            ptime = datetime.utcfromtimestamp(float(content))
+            threshold_time = datetime.utcfromtimestamp(float(f.read()))
+
         # Overrule the time from which to download video if we've been asked to
         # keep videos since a certain number of days ago.
         if args.since is not None:
@@ -59,15 +59,12 @@ if __name__ == '__main__':
             # stamp since the last run and remove them.
             keeptime = datetime.fromtimestamp(ftime) - relativedelta(days=float(args.retain))
             for video in Path('.').glob('*.mp4'):
-                mtime = datetime.utcfromtimestamp(os.path.getmtime(video))
-                if mtime < keeptime:
+                modified_time = datetime.utcfromtimestamp(os.path.getmtime(video))
+                if modified_time < keep_time:
                     print(f'Removing {str(video)}.')
                     video.unlink()
     
-        urls = []
-    
-        for outline in outlines[0]:
-            urls.append(outline.xmlUrl)
+        urls = [outline.xmlUrl for outline in outlines[0]]
     
         videos = []
         for i, url in enumerate(urls):
@@ -90,4 +87,4 @@ if __name__ == '__main__':
             ydl.download(videos)
     
         with open('last.txt', 'w') as f:
-            f.write(str(ftime))
+            f.write(str(script_time))
