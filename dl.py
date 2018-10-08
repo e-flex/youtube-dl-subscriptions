@@ -75,7 +75,8 @@ if __name__ == '__main__':
                 video_time = datetime.fromtimestamp(mktime(item['published_parsed']))
                 if video_time > threshold_time:
                     videos.append(item['link'])
-    
+
+        print(' ' * 100, end='\r')
         if len(videos) == 0:
             print('Sorry, no new video found')
         else:
