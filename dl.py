@@ -17,7 +17,7 @@ if sys.version_info.major < 3 and sys.version_info.minor < 6:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser('Download YouTube subscriptions.')
-    parser.add_argument('--save-directory', '-s',
+    parser.add_argument('--save-directory', '-o',
                         dest='output',
                         default=None,
                         help='The directory to which to save the videos.')
@@ -25,6 +25,10 @@ if __name__ == '__main__':
                         dest='retain',
                         default=None,
                         help='Retain videos up to the given number of days since today.')
+    parser.add_argument('--since', '-s',
+                        dest='since',
+                        default=None,
+                        help='Only download videos newer than the given number of days.')
 
     args = parser.parse_args()
 
@@ -45,6 +49,10 @@ if __name__ == '__main__':
             content = f.read()
             # The last run time.
             ptime = datetime.utcfromtimestamp(float(content))
+        # Overrule the time from which to download video if we've been asked to
+        # keep videos since a certain number of days ago.
+        if args.since is not None:
+            threshold_time = datetime.fromtimestamp(script_time) - relativedelta(days=float(args.since))
 
         if args.retain is not None:
             # Find the videos in this directory which are older than the time
