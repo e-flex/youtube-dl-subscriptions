@@ -113,4 +113,5 @@ dmypy.json
 # project specific
 last.txt
 subs.xml
+run.sh
 
