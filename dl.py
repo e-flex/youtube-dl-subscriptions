@@ -29,24 +29,37 @@ if __name__ == '__main__':
                         dest='since',
                         default=None,
                         help='Only download videos newer than the given number of days.')
+    parser.add_argument('--config-directory', '-f',
+                        dest='config',
+                        default=None,
+                        help='The directory to which config is saved.')
 
     args = parser.parse_args()
 
     # The current run time.
     script_time = time()
 
-    outlines = opml.parse('subs.xml')
+    subsPath = 'subs.xml'
+    if args.config is not None:
+        subsPath = f'{args.config}/{subsPath}'
+    outlines = opml.parse(subsPath)
 
     if args.output is not None:
         args.output = Path(args.output).absolute()
         os.chdir(args.output)
+    else:
+        print('Must specify an ouput directory with -o')
 
-    if not Path('last.txt').exists():
-        with open('last.txt', 'w') as f:
+    lastPath = 'last.txt'
+    if args.config is not None:
+        lastPath = f'{args.config}/{lastPath}'
+
+    if not Path(lastPath).exists():
+        with open(lastPath, 'w') as f:
             f.write(str(time()))
             print('Initialized a last.txt file with current timestamp.')
     else:
-        with open('last.txt', 'r') as f:
+        with open(lastPath, 'r') as f:
             # The last run time.
             threshold_time = datetime.utcfromtimestamp(float(f.read()))
 
@@ -66,9 +79,9 @@ if __name__ == '__main__':
                 if modified_time < keep_time:
                     print(f'Removing {str(video)}.')
                     video.unlink()
-    
+
         urls = [outline.xmlUrl for outline in outlines[0]]
-    
+
         videos = []
         for i, url in enumerate(urls):
             print(f'Parsing through channel {i + 1} of {len(urls)}', end='\r')
@@ -81,13 +94,14 @@ if __name__ == '__main__':
         print(' ' * 100, end='\r')
         if len(videos) == 0:
             print('Sorry, no new video found')
+            quit()
         else:
             print(f'{len(videos)} new videos found')
-    
+
         ydl_opts = {'ignoreerrors': True, 'quiet': True, 'outtmpl': (args.output / Path('%(uploader)s', '%(title)s.%(ext)s')).as_posix()}
-    
+
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download(videos)
-    
-        with open('last.txt', 'w') as f:
+
+        with open(lastPath, 'w') as f:
             f.write(str(script_time))
