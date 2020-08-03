@@ -1,11 +1,11 @@
-FROM alpine:3.10
+FROM alpine:3.12
 
 WORKDIR /code
 
 COPY requirements.txt /code/requirements.txt
 
 RUN apk add --no-cache --virtual py-build-deps gcc libc-dev libxslt-dev python3-dev && \
-    apk add --no-cache python3 libxslt && \
+    apk add --no-cache python3 py3-pip libxslt ffmpeg && \
     pip3 install -r requirements.txt && \
     apk del py-build-deps
 
