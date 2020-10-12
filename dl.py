@@ -77,6 +77,11 @@ if __name__ == "__main__":
 
     ic(args)
 
+    if args.retain > args.since:
+        print("It is no good idea to remove newer files than what you want to download.")
+        if input("Continue y/[n]: ").lower() != y:
+            quit()
+
     # The current run time.
     scriptStartTime = time()
 
@@ -127,16 +132,15 @@ if __name__ == "__main__":
         # Create a timestamp that points to a time a couple of days ago
         # using the retain option.
         retainTimestamp = datetime.now() - relativedelta(days=int(args.retain))
-        ic(retainTimestamp)
         # Loop over all the files in the output directory and
         # remove all that are older that the retainTimestamp
         for video in outputPath.glob("**/*.*"):
             modifiedTime = datetime.fromtimestamp(video.stat().st_mtime)
             ic(modifiedTime)
+            ic(retainTimestamp)
             if modifiedTime < retainTimestamp:
                 print(f"Removing {str(video)}.")
                 video.unlink()
-                ic(sinceTimestamp)
 
     # Loop over the feed URLs and get the latest uploads
     videoURLs = []
@@ -159,7 +163,7 @@ if __name__ == "__main__":
 
     ydl_opts = {
         "ignoreerrors": True,
-        "quiet": args.debug,
+        "quiet": not args.debug,
         "outtmpl": (
             outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
         "format": "best"
