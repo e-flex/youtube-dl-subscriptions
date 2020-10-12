@@ -33,8 +33,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--retain",
         "-r",
-        default=15,
-        help="Retain videos up to the given number of days since today. Default: 15",
+        default=None,
+        help="Retain videos up to the given number of days since today. Default: None",
         type=int
     )
     parser.add_argument(
@@ -62,6 +62,12 @@ if __name__ == "__main__":
         "-d",
         default=False,
         help="Print some more verbose debugging info.",
+        action="store_true"
+    )
+    parser.add_argument(
+        "--no-download",
+        default=False,
+        help="Set this to not download any videos.",
         action="store_true"
     )
 
@@ -98,8 +104,12 @@ if __name__ == "__main__":
 
     lastFile = stateDir / "last.time"
     subsXMLFile = confDir / "subs.xml"
+    
     outlines = opml.parse(subsXMLFile.open())
-    # outlines = etree.parse(subsXMLFile.open())
+    feedURLs = [outline.xmlUrl for outline in outlines[0]]
+    if args.debug:
+        feedURLs = feedURLs[:12]
+    ic(feedURLs[:10])
 
     # Overrule the time from which to download video if we've been asked to
     # keep videos since a certain number of days ago.
@@ -112,13 +122,14 @@ if __name__ == "__main__":
         sinceTimestamp = dateparse(lastFile.read_text())
         ic(sinceTimestamp)
 
+    # Nothing is purged by default
     if args.retain is not None:
-        # Find the videos in this directory which are older than the time
-        # stamp since the last run and remove them.
-        retainTimestamp = datetime.now() - relativedelta(
-            days=int(args.retain)
-        )
+        # Create a timestamp that points to a time a couple of days ago
+        # using the retain option.
+        retainTimestamp = datetime.now() - relativedelta(days=int(args.retain))
         ic(retainTimestamp)
+        # Loop over all the files in the output directory and
+        # remove all that are older that the retainTimestamp
         for video in outputPath.glob("**/*.*"):
             modifiedTime = datetime.fromtimestamp(video.stat().st_mtime)
             ic(modifiedTime)
@@ -127,27 +138,24 @@ if __name__ == "__main__":
                 video.unlink()
                 ic(sinceTimestamp)
 
-    videoURLs = [outline.xmlUrl for outline in outlines[0]]
-
-    ic(videoURLs[:10])
-
-    videos = []
-    for i, url in enumerate(videoURLs):
-        print(f"Parsing through channel {i + 1} of {len(videoURLs)}")
-        ic(i, url)
+    # Loop over the feed URLs and get the latest uploads
+    videoURLs = []
+    for i, url in enumerate(feedURLs):
+        print(f"Parsing through channel {i + 1} of {len(feedURLs)}")
+        ic("Feed URL:", url)
         feed = feedparser.parse(url)
         for item in feed["items"]:
-            video_time = datetime.fromtimestamp(mktime(item["published_parsed"]))
-            ic(video_time)
-            if video_time > sinceTimestamp:
+            publishedDate = datetime.fromtimestamp(mktime(item["published_parsed"]))
+            ic(publishedDate)
+            if publishedDate > sinceTimestamp:
                 ic(item["link"])
-                videos.append(item["link"])
+                videoURLs.append(item["link"])
 
-    if len(videos) == 0:
+    if len(videoURLs) == 0:
         print("Sorry, no new video found")
         quit()
     else:
-        print(f"{len(videos)} new videos found")
+        print(f"{len(videoURLs)} new videos found")
 
     ydl_opts = {
         "ignoreerrors": True,
@@ -158,7 +166,14 @@ if __name__ == "__main__":
     }
     ic(ydl_opts)
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download(videos)
+    if not args.debug:
+        print("Downloading the videos now...")
+
+    if not args.no_download:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download(videoURLs)
+    else:
+        print("This is a dry run, nothing is downloaded.")
 
     lastFile.write_text(str(datetime.now()))
+    print("Finished downloading videos.")
