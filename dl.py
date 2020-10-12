@@ -70,6 +70,13 @@ if __name__ == "__main__":
         help="Set this to not download any videos.",
         action="store_true"
     )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        default=False,
+        help="Reduce the output.",
+        action="store_true"
+    )
 
     args = parser.parse_args()
     if args.debug:
@@ -77,9 +84,9 @@ if __name__ == "__main__":
 
     ic(args)
 
-    if args.retain > args.since:
-        print("It is no good idea to remove newer files than what you want to download.")
-        if input("Continue y/[n]: ").lower() != y:
+    if args.retain < args.since:
+        print("It is not a good idea to remove newer files than what you want to download.")
+        if input("Continue y/[n]: ").lower() != "y":
             quit()
 
     # The current run time.
@@ -139,13 +146,15 @@ if __name__ == "__main__":
             ic(modifiedTime)
             ic(retainTimestamp)
             if modifiedTime < retainTimestamp:
-                print(f"Removing {str(video)}.")
+                if not args.quiet:
+                    print(f"Removing {str(video)}.")
                 video.unlink()
 
     # Loop over the feed URLs and get the latest uploads
     videoURLs = []
     for i, url in enumerate(feedURLs):
-        print(f"Parsing through channel {i + 1} of {len(feedURLs)}")
+        if not args.quiet:
+            print(f"Parsing through channel {i + 1} of {len(feedURLs)}")
         ic("Feed URL:", url)
         feed = feedparser.parse(url)
         for item in feed["items"]:
@@ -156,28 +165,30 @@ if __name__ == "__main__":
                 videoURLs.append(item["link"])
 
     if len(videoURLs) == 0:
-        print("Sorry, no new video found")
+        print("No new video found")
         quit()
-    else:
+    elif not args.quiet:
         print(f"{len(videoURLs)} new videos found")
 
     ydl_opts = {
         "ignoreerrors": True,
-        "quiet": not args.debug,
+        "quiet": args.quiet,
         "outtmpl": (
             outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
         "format": "best"
     }
     ic(ydl_opts)
 
-    if not args.debug:
+    if not args.debug and not args.quiet:
         print("Downloading the videos now...")
 
     if not args.no_download:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download(videoURLs)
-    else:
+    elif not args.quiet:
+        ic(videoURLs)
         print("This is a dry run, nothing is downloaded.")
 
     lastFile.write_text(str(datetime.now()))
-    print("Finished downloading videos.")
+    if not args.quiet:
+        print("Finished downloading videos.")
