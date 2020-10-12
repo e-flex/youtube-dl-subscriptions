@@ -1,0 +1,90 @@
+* youtube-dl-subscriptions
+  :PROPERTIES:
+  :CUSTOM_ID: youtube-dl-subscriptions
+  :END:
+
+Downloads all new videos from your YouTube subscription feeds.
+
+** Requirements
+   :PROPERTIES:
+   :CUSTOM_ID: requirements
+   :END:
+
+This script requires Python 3. Additional dependencies can be found in
+the =requirements.txt= file.
+
+** Usage
+   :PROPERTIES:
+   :CUSTOM_ID: usage
+   :END:
+
+*** Docker
+    :PROPERTIES:
+    :CUSTOM_ID: docker
+    :END:
+
+#+BEGIN_EXAMPLE
+  $ git clone https://github.com/tgrosinger/youtube-dl-subscriptions
+
+  $ ./build.sh
+
+  $ cp run.example.sh run.sh
+
+  # Make necessary changes in run.sh
+
+  $ ./run.sh
+#+END_EXAMPLE
+
+*** Running Locally
+    :PROPERTIES:
+    :CUSTOM_ID: running-locally
+    :END:
+
+If you do not want to use Docker, you can instead setup the dependencies
+to run this script from your locally installed python.
+
+Clone the repository
+
+#+BEGIN_EXAMPLE
+  $ git clone https://github.com/e-flex/youtube-dl-subscriptions.git
+
+  $ cd youtube-dl-subscriptions
+
+  $ pip install -r requirements.txt
+
+  $ dl.py --create-directories
+#+END_EXAMPLE
+
+Alternatively
+
+#+BEGIN_EXAMPLE
+  $ dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
+#+END_EXAMPLE
+
+Download your YouTube's subscriptions OPML file by visiting
+[[https://www.youtube.com/subscription_manager?action_takeout=1][this
+URL]]. Save the file as =subs.xml= to either the default conf path,
+=$XDG_CONFIG_HOME/yt-dl-subs/=, or the one set by the =-c= flag.
+
+You can then run the script
+
+#+BEGIN_EXAMPLE
+  $ dl.py
+#+END_EXAMPLE
+
+A =last.time= file will be created in order to avoid downloading the
+same videos on the next run, if you have already removed them, this
+means that the program will remember the last time it was run and as it
+is alwasy downloading videos up until the day it is being run, this
+timestamp will suffice.
+
+** Credits
+   :PROPERTIES:
+   :CUSTOM_ID: credits
+   :END:
+
+Based on the work from:
+[[https://github.com/mewfree/youtube-dl-subscriptions/][mewfree]] and
+[[https://github.com/pwcazenave/youtube-dl-subscriptions][pwcazenave]]
+and
+[[https://github.com/tgrosinger/youtube-dl-subscriptions][tgrosinger]].
