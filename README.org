@@ -52,13 +52,13 @@ Clone the repository
 
   $ pip install -r requirements.txt
 
-  $ dl.py --create-directories
+  $ ./dl.py --create-directories
 #+END_EXAMPLE
 
 Alternatively
 
 #+BEGIN_EXAMPLE
-  $ dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
+  $ ./dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
 #+END_EXAMPLE
 
 Download your YouTube's subscriptions OPML file by visiting
@@ -69,7 +69,7 @@ URL]]. Save the file as =subs.xml= to either the default conf path,
 You can then run the script
 
 #+BEGIN_EXAMPLE
-  $ dl.py
+  $ ./dl.py
 #+END_EXAMPLE
 
 A =last.time= file will be created in order to avoid downloading the
