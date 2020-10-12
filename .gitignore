@@ -115,3 +115,5 @@ last.txt
 subs.xml
 run.sh
 
+# Flake
+.flake8
