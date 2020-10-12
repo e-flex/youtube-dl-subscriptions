@@ -11,104 +11,126 @@ from time import time, mktime, strptime
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from appdirs import AppDirs
+from icecream import ic
 
 if sys.version_info.major < 3 and sys.version_info.minor < 6:
     raise Exception("Must be using Python 3.6 or greater")
+
+xdgDirs = AppDirs("yt-dl-subs")
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser("Download YouTube subscriptions.")
     parser.add_argument(
-        "--save-directory",
+        "--output-path",
         "-o",
-        dest="output",
-        default=None,
-        help="The directory to which to save the videos.",
+        default=Path().home() / "Videos" / "YT Subs",
+        help="The directory to which to save the videos. Default $HOME/Videos/YT Subs",
     )
     parser.add_argument(
         "--retain",
-        "-c",
-        dest="retain",
+        "-r",
         default=None,
-        help="Retain videos up to the given number of days since today.",
+        help="Retain videos up to the given number of days since today. Default: None",
     )
     parser.add_argument(
         "--since",
         "-s",
-        dest="since",
         default=None,
-        help="Only download videos newer than the given number of days.",
+        help="Only download videos newer than the given number of days. Default: None",
     )
     parser.add_argument(
-        "--config-directory",
+        "--config-path",
         "-f",
-        dest="config",
-        default=None,
-        help="The directory to which config is saved.",
+        default=Path(xdgDirs.user_config_dir),
+        help="The directory to which config is saved. Default: $XDG_CONFIG_HOME/yt-dl-subs",
+    )
+    parser.add_argument(
+        "--create-directories",
+        default=False,
+        help="Create all directories if they do not exist. Default: False"
     )
 
     args = parser.parse_args()
 
+    ic(args)
+
     # The current run time.
-    script_time = time()
+    scriptStartTime = time()
 
-    subsPath = "subs.xml"
-    if args.config is not None:
-        subsPath = f"{args.config}/{subsPath}"
-    outlines = opml.parse(subsPath)
-
-    if args.output is not None:
-        args.output = Path(args.output).absolute()
-        os.chdir(args.output)
+    if isinstance(args.config_path, str):
+        confDir = Path(args.config_path)
     else:
-        print("Must specify an ouput directory with -o")
+        confDir = args.config_path
 
-    lastPath = "last.txt"
-    if args.config is not None:
-        lastPath = f"{args.config}/{lastPath}"
-
-    if not Path(lastPath).exists():
-        with open(lastPath, "w") as f:
-            f.write(str(time()))
-            print("Initialized a last.txt file with current timestamp.")
+    if isinstance(args.output_path, str):
+        outputPath = Path(args.output_path)
     else:
-        with open(lastPath, "r") as f:
-            # The last run time.
-            threshold_time = datetime.utcfromtimestamp(float(f.read()))
+        outputPath = args.output_path
 
+    stateDir = Path(xdgDirs.user_state_dir)
+
+    if args.create_directories:
+        ic("Creating directories.")
+        if not confDir.exists():
+            confDir.mkdir(parents=True)
+        if not outputPath.exists():
+            outputPath.mkdir(parents=True)
+        if not stateDir.exists():
+            stateDir.mkdir(parents=True)
+        exit()
+
+    lastFile = stateDir / "last.time"
+    subsXMLFile = confDir / "subs.xml"
+    outlines = opml.parse(subsXMLFile.open())
+    # outlines = etree.parse(subsXMLFile.open())
+    
+    if not lastFile.exists():
+        lastFile.write_text(str(time()))
+    else:
         # Overrule the time from which to download video if we've been asked to
         # keep videos since a certain number of days ago.
         if args.since is not None:
-            threshold_time = datetime.fromtimestamp(script_time) - relativedelta(
-                days=float(args.since)
-            )
+            sinceTimestamp = datetime.now() - relativedelta(days=int(args.since))
+        else:
+            sinceTimestamp = datetime.fromtimestamp(float(lastFile.read_text()))
 
         if args.retain is not None:
             # Find the videos in this directory which are older than the time
             # stamp since the last run and remove them.
-            keep_time = datetime.fromtimestamp(script_time) - relativedelta(
-                days=float(args.retain)
+            retainTimestamp = datetime.now() - relativedelta(
+                days=int(args.retain)
             )
-            for video in Path(".").glob("**/*.*"):
-                if "last.txt" in str(video):
-                    continue
-                modified_time = datetime.utcfromtimestamp(os.path.getmtime(video))
-                if modified_time < keep_time:
+            for video in outputPath.glob("**/*.*"):
+                modifiedTime = datetime.fromtimestamp(video.stat().st_mtime)
+                ic(modifiedTime)
+                if modifiedTime < retainTimestamp:
                     print(f"Removing {str(video)}.")
                     video.unlink()
 
-        urls = [outline.xmlUrl for outline in outlines[0]]
+        videoURLs = [outline.xmlUrl for outline in outlines[0]]
+
+        ic(sinceTimestamp)
+        # ic(retainTimestamp)
+        ic(videoURLs[:10])
+        input("Continue.")
 
         videos = []
-        for i, url in enumerate(urls):
-            print(f"Parsing through channel {i + 1} of {len(urls)}", end="\r")
+        for i, url in enumerate(videoURLs):
+            print(f"Parsing through channel {i + 1} of {len(videoURLs)}")
+            ic(i, url)
             feed = feedparser.parse(url)
+            # if len(feed["items"]):
+            #     ic(feed['items'][0])
             for item in feed["items"]:
                 video_time = datetime.fromtimestamp(mktime(item["published_parsed"]))
-                if video_time > threshold_time:
+                ic(video_time)
+                if video_time > sinceTimestamp:
+                    ic(item["link"])
                     videos.append(item["link"])
+            # input("Continue")
 
-        print(" " * 100, end="\r")
+        print("---")
         if len(videos) == 0:
             print("Sorry, no new video found")
             quit()
@@ -117,14 +139,15 @@ if __name__ == "__main__":
 
         ydl_opts = {
             "ignoreerrors": True,
-            "quiet": True,
+            "quiet": False,
             "outtmpl": (
-                args.output / Path("%(uploader)s", "%(title)s.%(ext)s")
-            ).as_posix(),
+                outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
+            "format": "best"
         }
+        ic(ydl_opts)
+        input("Continue")
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download(videos)
 
-        with open(lastPath, "w") as f:
-            f.write(str(script_time))
+        lastFile.write_text(str(datetime.now()))
