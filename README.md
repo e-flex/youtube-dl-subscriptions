@@ -13,14 +13,15 @@ This script requires Python 3. Additional dependencies can be found in the `requ
 ### Docker
 
 ```
-git clone https://github.com/tgrosinger/youtube-dl-subscriptions
+$ git clone https://github.com/tgrosinger/youtube-dl-subscriptions
 
-./build.sh
-cp run.example.sh run.sh
+$ ./build.sh
+
+$ cp run.example.sh run.sh
 
 # Make necessary changes in run.sh
 
-./run.sh
+$ ./run.sh
 ```
 
 ### Running Locally
@@ -30,19 +31,17 @@ this script from your locally installed python.
 
 Clone the repository
 
-    git clone https://github.com/e-flex/youtube-dl-subscriptions.git
-
-Install the requirements
-
-    pip install -r requirements.txt
+    $ git clone https://github.com/e-flex/youtube-dl-subscriptions.git
 	
-Set up the directories to be used
-
-	dl.py --create-directories
+	$ cd youtube-dl-subscriptions
+	
+    $ pip install -r requirements.txt
+	
+	$ dl.py --create-directories
 	
 Alternatively
 
-	dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
+	$ dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
 
 Download your YouTube's subscriptions OPML file by visiting [this URL](https://www.youtube.com/subscription_manager?action_takeout=1). Save the file as `subs.xml` to either the default conf path, `$XDG_CONFIG_HOME/yt-dl-subs/`, or the one set by the `-c` flag.
 
