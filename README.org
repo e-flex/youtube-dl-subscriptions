@@ -55,16 +55,28 @@ Clone the repository
   $ ./dl.py --create-directories
 #+END_EXAMPLE
 
-Alternatively
+Alternatively specify the directories manually
 
 #+BEGIN_EXAMPLE
   $ ./dl.py --output-path='your/downloads' --config-path='~/.your/config/dir' --create-directories
 #+END_EXAMPLE
 
-Download your YouTube's subscriptions OPML file by visiting
-[[https://www.youtube.com/subscription_manager?action_takeout=1][this
-URL]]. Save the file as =subs.xml= to either the default conf path,
-=$XDG_CONFIG_HOME/yt-dl-subs/=, or the one set by the =-c= flag.
+YouTube has removed the easy to download OPML file, so follow these steps to get the JSON file with the channels you are subscribed to:
+
+1. Login to your YouTube account
+2. Click on your profile picture in the top right corner of the web page
+3. Click on "Your data in YouTube" in the displayed drop down
+4. Click on "More" in the "Your YouTube dashboard" card
+5. Click on "Download YouTube data"
+6. Under "Create a New Export", make sure "YouTube and YouTube Music" is selected
+7. Click on "All YouTube data included" and deselect everything except for "Subscriptions"
+8. Click "Next step"
+9. Select your preferred method of deliver (Email, Dropbox, etc.) and click on "Create Export" (Instructions from here on out will assume that you selected email)
+10. Check your email and download the zip-file that is provided.
+11. Extract the zip-file
+12. The file you want will be in =Takeout/YouTube and YouTube Music/subscriptions/subscriptions.json=
+
+Save this =subscriptions.json= to either the default conf path, =$XDG_CONFIG_HOME/yt-dl-subs/=, or the one set by the =-c= flag.
 
 You can then run the script
 

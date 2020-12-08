@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import opml
 import feedparser
 import youtube_dl
 import sys
@@ -12,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateparse
 from appdirs import AppDirs
 from icecream import ic
+import json
 
 ic.disable()
 
@@ -28,54 +28,50 @@ if __name__ == "__main__":
         "-o",
         default=Path().home() / "Videos" / "YT Subs",
         help=f"The directory to which to save the videos.  Default {Path().home() / 'Videos' / 'YT Subs'}",
-        type=Path
+        type=Path,
     )
     parser.add_argument(
         "--retain",
         "-r",
         default=None,
         help="Retain videos up to the given number of days since today. Default: None",
-        type=int
+        type=int,
     )
     parser.add_argument(
         "--since",
         "-s",
         default=14,
         help="Only download videos newer than the given number of days. Default: 14",
-        type=int
+        type=int,
     )
     parser.add_argument(
         "--config-path",
         "-c",
         default=Path(xdgDirs.user_config_dir),
         help=f"The directory to which config is saved. Default: {xdgDirs.user_config_dir}",
-        type=Path
+        type=Path,
     )
     parser.add_argument(
         "--create-directories",
         default=False,
         help="Create all directories if they do not exist. Default: False",
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument(
         "--debug",
         "-d",
         default=False,
         help="Print some more verbose debugging info.",
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument(
         "--no-download",
         default=False,
         help="Set this to not download any videos.",
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument(
-        "--quiet",
-        "-q",
-        default=False,
-        help="Reduce the output.",
-        action="store_true"
+        "--quiet", "-q", default=False, help="Reduce the output.", action="store_true"
     )
 
     args = parser.parse_args()
@@ -85,7 +81,9 @@ if __name__ == "__main__":
     ic(args)
 
     if args.retain and args.retain < args.since:
-        print("It is not a good idea to remove newer files than what you want to download.")
+        print(
+            "It is not a good idea to remove newer files than what you want to download."
+        )
         if input("Continue y/[n]: ").lower() != "y":
             quit()
 
@@ -115,12 +113,16 @@ if __name__ == "__main__":
         exit()
 
     lastFile = stateDir / "last.time"
-    subsXMLFile = confDir / "subs.xml"
-    
-    outlines = opml.parse(subsXMLFile.open())
-    feedURLs = [outline.xmlUrl for outline in outlines[0]]
-    if args.debug:
-        feedURLs = feedURLs[:12]
+    subsJSONFile = confDir / "subscriptions.json"
+
+    tmpJSON = json.loads(subsJSONFile.read_text())
+    ic(len(tmpJSON))
+    ic(tmpJSON[0])
+
+    baseURL = "https://www.youtube.com/feeds/videos.xml?channel_id="
+    feedURLs = [
+        baseURL + item["snippet"]["resourceId"]["channelId"] for item in tmpJSON
+    ]
     ic(feedURLs[:10])
 
     # Overrule the time from which to download video if we've been asked to
@@ -161,8 +163,8 @@ if __name__ == "__main__":
         for item in feed["items"]:
             publishedDate = datetime.fromtimestamp(mktime(item["published_parsed"]))
             ic(publishedDate)
-            ic(item)
             if publishedDate > sinceTimestamp:
+                ic(item["author"])
                 videoURLs.append(item["link"])
 
     if len(videoURLs) == 0:
@@ -174,10 +176,9 @@ if __name__ == "__main__":
     ydl_opts = {
         "ignoreerrors": True,
         "quiet": args.quiet,
-        "outtmpl": (
-            outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
+        "outtmpl": (outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
         "format": "best",
-        "verbose": args.debug
+        "verbose": args.debug,
     }
     ic(ydl_opts)
 

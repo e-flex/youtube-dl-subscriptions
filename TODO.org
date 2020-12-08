@@ -1,4 +1,5 @@
 #+TITLE:The TODO list
 * TODO Reduce the complexity of the main file.
 * TODO Investigate if it is possible to go back in the feeds timeline for older videos.
-* TODO Update the readme with  https://github.com/FreeTubeApp/FreeTube/wiki/Importing-Your-YouTube-Subscriptions#from-youtube
+* DONE Update the readme with https://github.com/FreeTubeApp/FreeTube/wiki/Importing-Your-YouTube-Subscriptions#from-youtube
+* TODO Make the script aware of the newest video file in the downloads directory and try to not download any older videos, with a bypass option.
