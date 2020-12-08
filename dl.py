@@ -27,7 +27,7 @@ if __name__ == "__main__":
         "--output-path",
         "-o",
         default=Path().home() / "Videos" / "YT Subs",
-        help="The directory to which to save the videos.  Default $HOME/Videos/YT Subs",
+        help=f"The directory to which to save the videos.  Default {Path().home() / 'Videos' / 'YT Subs'}",
         type=Path
     )
     parser.add_argument(
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         "--config-path",
         "-c",
         default=Path(xdgDirs.user_config_dir),
-        help="The directory to which config is saved. Default: $XDG_CONFIG_HOME/yt-dl-subs",
+        help=f"The directory to which config is saved. Default: {xdgDirs.user_config_dir}",
         type=Path
     )
     parser.add_argument(
