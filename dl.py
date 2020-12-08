@@ -105,7 +105,7 @@ if __name__ == "__main__":
     stateDir = Path(xdgDirs.user_state_dir)
 
     if args.create_directories:
-        ic("Creating directories.")
+        print("Creating directories.")
         if not confDir.exists():
             confDir.mkdir(parents=True)
         if not outputPath.exists():
