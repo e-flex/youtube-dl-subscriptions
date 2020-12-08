@@ -117,3 +117,6 @@ run.sh
 
 # Flake
 .flake8
+
+# emacs
+.#*
