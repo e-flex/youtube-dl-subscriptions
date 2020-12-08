@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     ic(args)
 
-    if args.retain < args.since:
+    if args.retain and args.retain < args.since:
         print("It is not a good idea to remove newer files than what you want to download.")
         if input("Continue y/[n]: ").lower() != "y":
             quit()
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         sinceTimestamp = datetime.now() - relativedelta(days=7)
     else:
         sinceTimestamp = dateparse(lastFile.read_text())
-        ic(sinceTimestamp)
+    ic(sinceTimestamp)
 
     # Nothing is purged by default
     if args.retain is not None:
@@ -149,6 +149,7 @@ if __name__ == "__main__":
                 if not args.quiet:
                     print(f"Removing {str(video)}.")
                 video.unlink()
+        input("Removal is done.")
 
     # Loop over the feed URLs and get the latest uploads
     videoURLs = []
@@ -160,8 +161,8 @@ if __name__ == "__main__":
         for item in feed["items"]:
             publishedDate = datetime.fromtimestamp(mktime(item["published_parsed"]))
             ic(publishedDate)
+            ic(item)
             if publishedDate > sinceTimestamp:
-                ic(item["link"])
                 videoURLs.append(item["link"])
 
     if len(videoURLs) == 0:
@@ -175,7 +176,8 @@ if __name__ == "__main__":
         "quiet": args.quiet,
         "outtmpl": (
             outputPath / "%(uploader)s - %(title)s.%(ext)s").as_posix(),
-        "format": "best"
+        "format": "best",
+        "verbose": args.debug
     }
     ic(ydl_opts)
 
