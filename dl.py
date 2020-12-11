@@ -40,8 +40,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--since",
         "-s",
-        default=14,
-        help="Only download videos newer than the given number of days. Default: 14",
+        default=None,
+        help="Only download videos newer than the given number of days. Default: None",
         type=int,
     )
     parser.add_argument(
@@ -115,6 +115,19 @@ if __name__ == "__main__":
     lastFile = stateDir / "last.time"
     subsJSONFile = confDir / "subscriptions.json"
 
+    # Overrule the time from which to download video if we've been asked to
+    # keep videos since a certain number of days ago.
+    if args.since is not None:
+        sinceTimestamp = datetime.now() - relativedelta(days=int(args.since))
+        ic("args.since is set", sinceTimestamp)
+    elif not lastFile.exists():
+        lastFile.write_text(str(time()))
+        sinceTimestamp = datetime.now() - relativedelta(days=7)
+        ic("lastFile does not exist", str(time()), sinceTimestamp)
+    else:
+        sinceTimestamp = dateparse(lastFile.read_text())
+        ic("lastFile exists and is read", sinceTimestamp)
+
     tmpJSON = json.loads(subsJSONFile.read_text())
     ic(len(tmpJSON))
     ic(tmpJSON[0])
@@ -124,17 +137,6 @@ if __name__ == "__main__":
         baseURL + item["snippet"]["resourceId"]["channelId"] for item in tmpJSON
     ]
     ic(feedURLs[:10])
-
-    # Overrule the time from which to download video if we've been asked to
-    # keep videos since a certain number of days ago.
-    if args.since is not None:
-        sinceTimestamp = datetime.now() - relativedelta(days=int(args.since))
-    elif not lastFile.exists():
-        lastFile.write_text(str(time()))
-        sinceTimestamp = datetime.now() - relativedelta(days=7)
-    else:
-        sinceTimestamp = dateparse(lastFile.read_text())
-    ic(sinceTimestamp)
 
     # Nothing is purged by default
     if args.retain is not None:
